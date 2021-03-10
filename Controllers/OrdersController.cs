@@ -1,4 +1,5 @@
 ﻿using backend_shop.Data;
+using backend_shop.DTO;
 using backend_shop.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -64,12 +65,21 @@ namespace backend_shop.Controllers
             }
         }
 
-        [HttpPost]
-        public async Task<ActionResult<Customer>> AddOrder(Order order)
+        [HttpPost("Add")]
+        public async Task<ActionResult<IEnumerable<OrderDTO>>> AddOrder(OrderDTO request)
         {
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction("GetAllOrders", new { id = order.id }, order);
+            foreach (var item in request.productId)
+            {
+                var order = new Order()
+                {
+                    customerId = request.customerId,
+                    productId = item
+                };
+                await _context.Orders.AddAsync(order);
+                await _context.SaveChangesAsync();
+            }
+
+            return CreatedAtAction("GetAllOrders", request);
         }
 
 
