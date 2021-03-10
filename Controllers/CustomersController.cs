@@ -22,21 +22,44 @@ namespace backend_shop.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Customer>>> GetAllCustomers()
         {
-            return await _context.customers.ToListAsync();
+            return await _context.Customers.ToListAsync();
         }
-        
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Customer>> GetCustomerById(int id)
         {
-            var values = await _context.customers.FindAsync(id);
-            if (values != null)
+            var customers = await _context.Customers.FindAsync(id);
+            if (customers != null)
             {
-                return values;
+                return customers;
             }
             else
             {
                 return NotFound();
             }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Customer>> CreateCustomer(Customer customer)
+        {
+            _context.Customers.Add(customer);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction("GetAllCustomers", new { id = customer.id }, customer);
+        }
+        
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<Customer>> DeleteCustomer(int id)
+        {
+            var customers = await _context.Customers.FindAsync(id);
+            if (customers == null)
+            {
+                return NotFound();
+            }
+            
+            _context.Customers.Remove(customers);
+            await _context.SaveChangesAsync();
+
+            return customers;
         }
     }
 }

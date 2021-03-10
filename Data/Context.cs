@@ -10,8 +10,8 @@ namespace backend_shop.Data
     public class Context : DbContext
     {
         public Context(DbContextOptions<Context> options) : base(options) { }
-        public DbSet<Customer> customers { get; set; }
-        public DbSet<Order> orders { get; set; }
-        public DbSet<Product> products { get; set; }
+        public DbSet<Customer> Customers { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<Product> Products { get; set; }
     }
 }
