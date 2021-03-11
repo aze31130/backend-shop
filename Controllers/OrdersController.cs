@@ -40,8 +40,9 @@ namespace backend_shop.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Order>> GetOrderByCustomerId(int id)
+
+        [HttpGet("{customerId}")]
+        public async Task<ActionResult<IEnumerable<Order>>> GetOrderByCustomerId(int id)
         {
             List<Order> orders = await _context.Orders.ToListAsync();
             List<Order> filteredOrders = new List<Order>(0) { };
@@ -56,8 +57,7 @@ namespace backend_shop.Controllers
 
             if (orders != null)
             {
-                //NEED TO CONVERT LIST<Order> TO ACTIONRESULT
-                return null;
+                return filteredOrders;
             }
             else
             {
