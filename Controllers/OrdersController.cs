@@ -82,6 +82,20 @@ namespace backend_shop.Controllers
             return CreatedAtAction("GetAllOrders", request);
         }
 
+        [HttpPut("id")]
+        public async Task<ActionResult> UpdateOrder(int id, Order order)
+        {
+            if (!id.Equals(order.id) || !_context.Orders.Any(x => x.id.Equals(id)))
+            {
+                return BadRequest();
+            }
+            else
+            {
+                _context.Entry(order).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+                return CreatedAtAction("GetAllOrders", new { id = order.id }, order);
+            }
+        }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult<Order>> DeleteOrder(int id)
