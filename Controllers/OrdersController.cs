@@ -26,7 +26,7 @@ namespace backend_shop.Controllers
             return await _context.Orders.ToListAsync();
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("id")]
         public async Task<ActionResult<Order>> GetOrderById(int id)
         {
             var orders = await _context.Orders.FindAsync(id);
@@ -41,15 +41,15 @@ namespace backend_shop.Controllers
         }
 
 
-        [HttpGet("{customerId}")]
-        public async Task<ActionResult<IEnumerable<Order>>> GetOrderByCustomerId(int id)
+        [HttpGet("customerId")]
+        public async Task<ActionResult<IEnumerable<Order>>> GetOrderByCustomerId(int customerId)
         {
             List<Order> orders = await _context.Orders.ToListAsync();
             List<Order> filteredOrders = new List<Order>(0) { };
 
             foreach (Order order in orders)
             {
-                if (order.customerId.Equals(id))
+                if (order.customerId.Equals(customerId))
                 {
                     filteredOrders.Add(order);
                 }
