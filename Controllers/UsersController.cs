@@ -108,7 +108,7 @@ namespace backend_shop.Controllers
 
             if (!loggedUserId.Equals(id))
             {
-                return BadRequest(new {message = "Access Denied !");
+                return BadRequest(new { message = "Access Denied !" });
             }
 
             try
