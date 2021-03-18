@@ -10,6 +10,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using backend_shop.Interfaces;
+using AutoMapper;
 
 namespace backend_shop.Controllers
 {
