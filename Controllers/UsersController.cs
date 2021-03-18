@@ -11,6 +11,8 @@ using System.Security.Claims;
 using System.Text;
 using backend_shop.Interfaces;
 using AutoMapper;
+using backend_shop.Utils;
+using backend_shop.DTO;
 
 namespace backend_shop.Controllers
 {
@@ -19,22 +21,22 @@ namespace backend_shop.Controllers
     [Route("[controller]")]
     public class UsersController : ControllerBase
     {
-        private IUserService _userService;
-        private IMapper _mapper;
+        private IUserService userService;
+        private IMapper mapper;
         public IConfiguration Configuration;
 
-        public UsersController(IUserService userService, IMapper mapper, IConfiguration configuration)
+        public UsersController(IUserService _userService, IMapper _mapper, IConfiguration _configuration)
         {
-            _userService = userService;
-            _mapper = mapper;
-            Configuration = configuration;
+            userService = _userService;
+            mapper = _mapper;
+            Configuration = _configuration;
         }
 
         [AllowAnonymous]
         [HttpPost("auth")]
         public IActionResult Authenticate([FromBody] Authenticate model)
         {
-            var user = _userService.Authenticate(model.username, model.password);
+            var user = userService.Authenticate(model.username, model.password);
 
             if (user == null)
             {
@@ -65,6 +67,65 @@ namespace backend_shop.Controllers
             });
         }
 
+        [AllowAnonymous]
+        [HttpPost("register")]
+        public IActionResult Register([FromBody] RegisterModel model)
+        {
+            var user = mapper.Map<User>(model);
+            try
+            {
+                userService.Create(user, model.password);
+                return Ok();
+            }
+            catch (ExceptionRaiser ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
+        [HttpGet]
+        public IActionResult GetAllUsers()
+        {
+            var users = userService.GetAll();
+            var model = mapper.Map<IList<UserModel>>(users);
+            return Ok(model);
+        }
+
+        [HttpGet("id")]
+        public IActionResult GetUserById(int id)
+        {
+            var user = userService.GetById(id);
+            var model = mapper.Map<UserModel>(user);
+            return Ok(model);
+        }
+
+        [HttpPut("id")]
+        public IActionResult UpdateUser(int id, [FromBody] UpdateModel model)
+        {
+            int loggedUserId = int.Parse(User.Identity.Name);
+            var user = mapper.Map<User>(model);
+            user.id = id;
+
+            if (!loggedUserId.Equals(id))
+            {
+                return BadRequest(new {message = "Access Denied !");
+            }
+
+            try
+            {
+                userService.Update(user, model.currentpassword, model.newpassword, model.confirmednewpassword);
+                return Ok();
+            } catch (ExceptionRaiser e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        [HttpDelete("id")]
+        public IActionResult Delete(int id)
+        {
+            userService.Delete(id);
+            return Ok();
+        }
     }
 }
