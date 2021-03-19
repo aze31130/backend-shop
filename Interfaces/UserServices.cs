@@ -137,7 +137,7 @@ namespace backend_shop.Interfaces
                     throw new ExceptionRaiser("You need to change your password");
                 }
 
-                if (!currentPassword.Equals(password))
+                if (!password.Equals(confirmPassword))
                 {
                     throw new ExceptionRaiser("Password doesn't match !");
                 }
