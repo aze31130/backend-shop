@@ -12,5 +12,8 @@ namespace backend_shop.DTO
         public string username { get; set; }
         [Required]
         public string password { get; set; }
+        [Required]
+        public int age { get; set; }
+
     }
 }

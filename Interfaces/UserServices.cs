@@ -46,27 +46,14 @@ namespace backend_shop.Interfaces
                 return null;
             }
 
-            var user = _context.Users.SingleOrDefault(x => x.username.Equals(username));
+            var user = _context.Users.FirstOrDefault(x => x.username.Equals(username)) ?? null;
 
             if (user == null)
             {
                 return null;
             }
 
-            string savedPasswordHash = _context.Users.SingleOrDefault(x => x.username.Equals(username)).passwordhash;
-            string[] passwordparts = savedPasswordHash.Split(":");
-            string hashedpassword = passwordparts[0];
-            string salt = passwordparts[1];
-
-            MD5 digest = new MD5CryptoServiceProvider();
-            byte[] result = digest.ComputeHash(Encoding.UTF8.GetBytes(salt + password));
-            var hashstring = "";
-            foreach (var hashbyte in result)
-            {
-                hashstring += hashbyte.ToString("x2");
-            }
-
-            if (!hashstring.Equals(hashedpassword))
+            if (!computeHash(password).Equals(user.passwordhash))
             {
                 return null;
             }
@@ -95,19 +82,8 @@ namespace backend_shop.Interfaces
                 throw new ExceptionRaiser("Username already taken: " + user.username);
             }
 
-            MD5 digest = new MD5CryptoServiceProvider();
-            var salt = GenerateRandomKey(10000);
-            var exactSalt = salt.Substring(salt.Length - 2);
-            byte[] result = digest.ComputeHash(Encoding.UTF8.GetBytes(exactSalt + password));
+            user.passwordhash = computeHash(password);
 
-            var hashString = "";
-            foreach (var hashbyte in result)
-            {
-                hashString += hashbyte.ToString("x2");
-            }
-            string savedPasswordHash = hashString;
-
-            user.passwordhash = savedPasswordHash + ":" + exactSalt;
             _context.Users.Add(user);
             _context.SaveChanges();
 
@@ -131,7 +107,10 @@ namespace backend_shop.Interfaces
                 {
                     throw new ExceptionRaiser("Username already taken: " + user.username);
                 }
-                user.username = userSettings.username;
+                else
+                {
+                    user.username = userSettings.username;
+                }
             }
 
             //Check if the firstname changed
@@ -146,50 +125,24 @@ namespace backend_shop.Interfaces
                 user.lastname = userSettings.lastname;
             }
 
-            //Get the hash
-            string savedPasswordHash = _context.Users.SingleOrDefault(x => x.username.Equals(userSettings.username)).passwordhash;
-
-            //Extract the bytes
-            string[] passwordParts = savedPasswordHash.Split(":");
-            string hashedPassword = passwordParts[0];
-            string salt = passwordParts[1];
-
-            MD5 digest = new MD5CryptoServiceProvider();
-
-            byte[] result = digest.ComputeHash(Encoding.UTF8.GetBytes(salt + password));
-
-            var hashString = "";
-            foreach (var hashbyte in result)
+            if (!string.IsNullOrWhiteSpace(currentPassword))
             {
-                hashString += hashbyte.ToString("x2");
+                if (!computeHash(currentPassword).Equals(user.passwordhash))
+                {
+                    throw new ExceptionRaiser("Invalid password !");
+                }
+
+                if (currentPassword.Equals(password))
+                {
+                    throw new ExceptionRaiser("You need to change your password");
+                }
+
+                if (!currentPassword.Equals(password))
+                {
+                    throw new ExceptionRaiser("Password doesn't match !");
+                }
+                user.passwordhash = computeHash(password);
             }
-
-            if (!hashString.Equals(hashedPassword))
-            {
-                throw new ExceptionRaiser("Invalid password");
-            }
-
-            if (currentPassword.Equals(password))
-            {
-                throw new ExceptionRaiser("Same password");
-            }
-
-            if (!password.Equals(confirmPassword))
-            {
-                throw new ExceptionRaiser("Password doesn't match !");
-            }
-
-            var salts = GenerateRandomKey(10000);
-            var exactSalt = salts.Substring(salts.Length - 2);
-            byte[] results = digest.ComputeHash(Encoding.UTF8.GetBytes(exactSalt + password));
-
-            var hashStrings = "";
-            foreach (var hashbyte in result)
-            {
-                hashStrings += hashbyte.ToString("x2");
-            }
-            string savedPasswordHashs = savedPasswordHash + ":" + "exactSalt";
-
             _context.Users.Update(user);
             _context.SaveChanges();
         }
@@ -202,6 +155,18 @@ namespace backend_shop.Interfaces
                 _context.Users.Remove(user);
                 _context.SaveChanges();
             }
+        }
+
+        private static string computeHash(string password)
+        {
+            MD5 digest = new MD5CryptoServiceProvider();
+            var input = digest.ComputeHash(Encoding.UTF8.GetBytes(password));
+            var hashedString = "";
+            foreach (var hashbyte in input)
+            {
+                hashedString += hashbyte.ToString("x2");
+            }
+            return hashedString;
         }
     }
 }
